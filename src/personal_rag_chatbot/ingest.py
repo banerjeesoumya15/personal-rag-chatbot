@@ -36,3 +36,48 @@ def load_documents(data_dir: Path):
             print(f"Skipping unsupported file: {file_path.name}")
 
     return documents
+
+def split_documents(documents):
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP,
+        separators=["\n\n", "\n", ".", " ", ""]
+    )
+    return splitter.split_documents(documents)
+
+def ingest_documents():
+    if not os.getenv("OPENAP_API_KEY"):
+        raise ValueError("OPENAI_API_KEY is missing.")
+
+    DATA_DIR.mkdir(exist_ok=True)
+    CHROMA_DIR.mkdir(exist_ok=True)
+
+    print("Lodaing documents...")
+    documents = load_documents(DATA_DIR)
+
+    if not documents:
+        print("No documents found in the data directory")
+        return
+
+    print(f"Loaded {len(documents)} documents")
+
+    print("Splitting documents...")
+    chunks = split_documents(documents)
+
+    print(f"Created {len(chunks)} chunks.")
+
+    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+
+    print("Creating vector database...")
+    Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        collection_name=COLLECTION_NAME,
+        persist_directory=str(CHROMA_DIR),
+    )
+
+    print("Ingestion complete.")
+    print(f"Vector database saved to: {CHROMA_DIR}")
+
+if __name__=="__main__":
+    ingest_documents()
