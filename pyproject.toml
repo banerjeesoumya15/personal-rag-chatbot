@@ -7,7 +7,15 @@ authors = [
     { name = "Soumya Banerjee", email = "banerjeesoumya15@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "chromadb>=1.5.9",
+    "langchain>=1.4.2",
+    "langchain-chroma>=1.1.0",
+    "langchain-community>=0.4.2",
+    "langchain-openai>=1.6.6",
+    "pypdf>=6.19.0",
+    "python-dotenv>=1.2.3",
+]
 
 [project.scripts]
 personal-rag-chatbot = "personal_rag_chatbot:main"
