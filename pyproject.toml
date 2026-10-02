@@ -18,6 +18,12 @@ dependencies = [
     "streamlit>=1.64.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock",
+]
+
 [project.scripts]
 personal-rag-chatbot = "personal_rag_chatbot:main"
 
