@@ -5,7 +5,13 @@ from dotenv import load_dotenv
 
 from personal_rag_chatbot.ingest import ingest_documents
 from personal_rag_chatbot.rag import ask_question
-from personal_rag_chatbot.config import DATA_DIR, CHROMA_DIR
+from personal_rag_chatbot.config import (
+    DATA_DIR, 
+    CHROMA_DIR,
+    OLLAMA_BASE_URL,
+    CHAT_MODEL,
+    EMBEDDING_MODEL,
+)
 
 
 load_dotenv()
@@ -64,13 +70,6 @@ with st.sidebar:
     st.divider()
 
     st.subheader("Status")
-
-    api_key = os.getenv("OPENAI_API_KEY")
-
-    if api_key:
-        st.success("OpenAI API key loaded.")
-    else:
-        st.error("OpenAI API key missing.")
 
     if CHROMA_DIR.exists():
         st.success("Vector database exists.")

@@ -1,8 +1,5 @@
-import os
-from dotenv import load_dotenv
-
 from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_ollama import OllamaEmbeddings, ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -12,10 +9,9 @@ from personal_rag_chatbot.config import (
     COLLECTION_NAME,
     EMBEDDING_MODEL,
     CHAT_MODEL,
+    OLLAMA_BASE_URL,
     RETRIEVAL_K,
 )
-
-load_dotenv()
 
 SYSTEM_PROMPT = """
 You are a helpful AI assistant answering questions using the provided context.
@@ -38,7 +34,8 @@ Answer:
 """
 
 def get_vectorstore():
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL,
+                                  base_url=OLLAMA_BASE_URL)
 
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
@@ -66,10 +63,7 @@ def format_docs(docs):
 
     return "\n\n".join(formatted_chunks)
 
-def ask_questions(question: str):
-    if not os.getenv("OPENAI_API_KEY"):
-        raise ValueError("OPENAI_API_KEY is missing.")
-
+def ask_question(question: str):
     vectorstore = get_vectorstore()
 
     retriever = vectorstore.as_retriever(
@@ -86,8 +80,9 @@ def ask_questions(question: str):
         ]
     )
 
-    llm = ChatOpenAI(
+    llm = ChatOllama(
         model=CHAT_MODEL,
+        base_url=OLLAMA_BASE_URL,
         temperature=0,
     )
 

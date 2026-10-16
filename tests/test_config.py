@@ -12,9 +12,17 @@ def test_data_dir_is_under_project_root():
 def test_chroma_dir_is_under_project_root():
     assert config.CHROMA_DIR == config.PROJECT_ROOT / "chroma_db"
 
-def test_model_config_values_are_valid():
+def test_ollama_base_url_is_not_empty():
+    assert config.OLLAMA_BASE_URL
+
+def test_model_config_values_Are_not_empty():
+    assert config.COLLECTION_NAME
+    assert config.EMBEDDING_MODEL
+    assert config.CHAT_MODEL
+
+def test_chunking_config_values_Are_valid():
     assert config.CHUNK_SIZE > 0
-    assert config.CHUNK_OVERLAP >= 0
+    assert config.CHUNK_OVERLAP > 0
     assert config.CHUNK_OVERLAP < config.CHUNK_SIZE
 
 def test_retrieval_k_is_positive():

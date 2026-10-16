@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 
 from personal_rag_chatbot.config import (
@@ -12,11 +10,10 @@ from personal_rag_chatbot.config import (
     CHROMA_DIR,
     COLLECTION_NAME,
     EMBEDDING_MODEL,
+    OLLAMA_BASE_URL,
     CHUNK_SIZE,
     CHUNK_OVERLAP,
 )
-
-load_dotenv()
 
 def load_documents(data_dir: Path):
     documents = []
@@ -46,8 +43,6 @@ def split_documents(documents):
     return splitter.split_documents(documents)
 
 def ingest_documents():
-    if not os.getenv("OPENAP_API_KEY"):
-        raise ValueError("OPENAI_API_KEY is missing.")
 
     DATA_DIR.mkdir(exist_ok=True)
     CHROMA_DIR.mkdir(exist_ok=True)
@@ -56,7 +51,7 @@ def ingest_documents():
     documents = load_documents(DATA_DIR)
 
     if not documents:
-        print("No documents found in the data directory")
+        print("No documents found in the data directory.")
         return
 
     print(f"Loaded {len(documents)} documents")
@@ -66,7 +61,8 @@ def ingest_documents():
 
     print(f"Created {len(chunks)} chunks.")
 
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL,
+                                  base_url=OLLAMA_BASE_URL)
 
     print("Creating vector database...")
     Chroma.from_documents(
