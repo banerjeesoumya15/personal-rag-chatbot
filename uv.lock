@@ -1899,6 +1899,7 @@ dependencies = [
     { name = "langchain-community" },
     { name = "langchain-ollama" },
     { name = "pypdf" },
+    { name = "pytest" },
     { name = "python-dotenv" },
     { name = "streamlit" },
 ]
@@ -1917,6 +1918,7 @@ requires-dist = [
     { name = "langchain-community", specifier = ">=0.4.2" },
     { name = "langchain-ollama", specifier = ">=1.1.0" },
     { name = "pypdf", specifier = ">=6.19.0" },
+    { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pytest-mock", marker = "extra == 'test'" },
     { name = "python-dotenv", specifier = ">=1.2.3" },

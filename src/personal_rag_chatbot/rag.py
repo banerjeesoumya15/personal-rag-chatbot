@@ -63,7 +63,7 @@ def format_docs(docs):
 
     return "\n\n".join(formatted_chunks)
 
-def ask_questions(question: str):
+def ask_question(question: str):
     vectorstore = get_vectorstore()
 
     retriever = vectorstore.as_retriever(

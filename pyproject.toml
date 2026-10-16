@@ -14,6 +14,7 @@ dependencies = [
     "langchain-community>=0.4.2",
     "langchain-ollama>=1.1.0",
     "pypdf>=6.19.0",
+    "pytest>=9.1.1",
     "python-dotenv>=1.2.3",
     "streamlit>=1.64.0",
 ]

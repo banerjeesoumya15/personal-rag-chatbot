@@ -47,18 +47,10 @@ def test_split_documents_preserves_metadata(sample_documents):
     assert all(chunk.metadata["source"] == "sample.txt" for chunk in chunks)
 
 
-def test_ingest_documents_raises_error_when_api_key_missing(monkeypatch):
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-
-    with pytest.raises(ValueError, match="OPENAI_API_KEY is missing"):
-        ingest.ingest_documents()
-
-
 def test_ingest_documents_returns_when_no_documents_found(monkeypatch, tmp_path, capsys):
     data_dir = tmp_path / "data"
     chroma_dir = tmp_path / "chroma_db"
 
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setattr(ingest, "DATA_DIR", data_dir)
     monkeypatch.setattr(ingest, "CHROMA_DIR", chroma_dir)
 
@@ -85,8 +77,9 @@ def test_ingest_documents_creates_vector_database(monkeypatch, tmp_path, sample_
     monkeypatch.setattr(ingest, "split_documents", lambda docs: docs)
 
     class FakeEmbeddings:
-        def __init__(self, model):
+        def __init__(self, model, base_url):
             self.model = model
+            self.base_url = base_url
 
     class FakeChroma:
         called = False
@@ -110,7 +103,7 @@ def test_ingest_documents_creates_vector_database(monkeypatch, tmp_path, sample_
             cls.received_persist_directory = persist_directory
             return cls()
 
-    monkeypatch.setattr(ingest, "OpenAIEmbeddings", FakeEmbeddings)
+    monkeypatch.setattr(ingest, "OllamaEmbeddings", FakeEmbeddings)
     monkeypatch.setattr(ingest, "Chroma", FakeChroma)
 
     ingest.ingest_documents()
@@ -118,6 +111,8 @@ def test_ingest_documents_creates_vector_database(monkeypatch, tmp_path, sample_
     assert FakeChroma.called is True
     assert FakeChroma.received_documents == sample_documents
     assert isinstance(FakeChroma.received_embedding, FakeEmbeddings)
+    assert FakeChroma.received_embedding.model == ingest.EMBEDDING_MODEL
+    assert FakeChroma.received_embedding.base_url == ingest.OLLAMA_BASE_URL
     assert FakeChroma.received_collection_name == ingest.COLLECTION_NAME
     assert FakeChroma.received_persist_directory == str(chroma_dir)
 

@@ -46,8 +46,9 @@ def test_get_vectorstore_creates_chroma_instance(monkeypatch, tmp_path):
     monkeypatch.setattr(rag, "CHROMA_DIR", tmp_path / "chroma_db")
 
     class FakeEmbeddings:
-        def __init__(self, model):
+        def __init__(self, model, base_url):
             self.model = model
+            self.base_url = base_url
 
     class FakeChroma:
         def __init__(
@@ -60,7 +61,7 @@ def test_get_vectorstore_creates_chroma_instance(monkeypatch, tmp_path):
             self.embedding_function = embedding_function
             self.persist_directory = persist_directory
 
-    monkeypatch.setattr(rag, "OpenAIEmbeddings", FakeEmbeddings)
+    monkeypatch.setattr(rag, "OllamaEmbeddings", FakeEmbeddings)
     monkeypatch.setattr(rag, "Chroma", FakeChroma)
 
     vectorstore = rag.get_vectorstore()
@@ -69,18 +70,11 @@ def test_get_vectorstore_creates_chroma_instance(monkeypatch, tmp_path):
     assert vectorstore.collection_name == rag.COLLECTION_NAME
     assert isinstance(vectorstore.embedding_function, FakeEmbeddings)
     assert vectorstore.embedding_function.model == rag.EMBEDDING_MODEL
+    assert vectorstore.embedding_function.base_url == rag.OLLAMA_BASE_URL
     assert vectorstore.persist_directory == str(tmp_path / "chroma_db")
 
 
-def test_ask_question_raises_error_when_api_key_missing(monkeypatch):
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-
-    with pytest.raises(ValueError, match="OPENAI_API_KEY is missing"):
-        rag.ask_question("What does Alex do?")
-
-
 def test_ask_question_returns_answer_and_sources(monkeypatch, sample_documents):
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
     class FakeRetriever:
         def invoke(self, question):
@@ -114,9 +108,10 @@ def test_ask_question_returns_answer_and_sources(monkeypatch, sample_documents):
             assert messages[1][0] == "user"
             return FakePrompt()
 
-    class FakeChatOpenAI:
-        def __init__(self, model, temperature):
+    class FakeChatOllama:
+        def __init__(self, model, base_url, temperature):
             assert model == rag.CHAT_MODEL
+            assert base_url == rag.OLLAMA_BASE_URL
             assert temperature == 0
 
     class FakeStrOutputParser:
@@ -124,7 +119,7 @@ def test_ask_question_returns_answer_and_sources(monkeypatch, sample_documents):
 
     monkeypatch.setattr(rag, "get_vectorstore", lambda: FakeVectorStore())
     monkeypatch.setattr(rag, "ChatPromptTemplate", FakeChatPromptTemplate)
-    monkeypatch.setattr(rag, "ChatOpenAI", FakeChatOpenAI)
+    monkeypatch.setattr(rag, "ChatOllama", FakeChatOllama)
     monkeypatch.setattr(rag, "StrOutputParser", FakeStrOutputParser)
 
     result = rag.ask_question("What does Alex build?")
@@ -134,7 +129,6 @@ def test_ask_question_returns_answer_and_sources(monkeypatch, sample_documents):
 
 
 def test_ask_question_handles_no_retrieved_documents(monkeypatch):
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
     class FakeRetriever:
         def invoke(self, question):
@@ -162,8 +156,8 @@ def test_ask_question_handles_no_retrieved_documents(monkeypatch):
         def from_messages(messages):
             return FakePrompt()
 
-    class FakeChatOpenAI:
-        def __init__(self, model, temperature):
+    class FakeChatOllama:
+        def __init__(self, model, base_url, temperature):
             pass
 
     class FakeStrOutputParser:
@@ -171,7 +165,7 @@ def test_ask_question_handles_no_retrieved_documents(monkeypatch):
 
     monkeypatch.setattr(rag, "get_vectorstore", lambda: FakeVectorStore())
     monkeypatch.setattr(rag, "ChatPromptTemplate", FakeChatPromptTemplate)
-    monkeypatch.setattr(rag, "ChatOpenAI", FakeChatOpenAI)
+    monkeypatch.setattr(rag, "ChatOllama", FakeChatOllama)
     monkeypatch.setattr(rag, "StrOutputParser", FakeStrOutputParser)
 
     result = rag.ask_question("What is not in the docs?")

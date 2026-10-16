@@ -51,7 +51,7 @@ def ingest_documents():
     documents = load_documents(DATA_DIR)
 
     if not documents:
-        print("No documents found in the data directory")
+        print("No documents found in the data directory.")
         return
 
     print(f"Loaded {len(documents)} documents")
